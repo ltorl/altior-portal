@@ -45,7 +45,6 @@
             justify-content: space-between;
             background: rgba(11, 12, 16, 0.7);
             backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
             gap: 0;
@@ -171,7 +170,7 @@
     <script type="importmap">
         {
             "imports": {
-                "@mercuryworkshop/bare-mux": "/baremux/index.mjs"
+                "@mercuryworkshop/bare-mux": "https://altior-portal.onrender.com/baremux/index.mjs"
             }
         }
     </script>
@@ -179,7 +178,9 @@
     <script type="module">
         import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
         
-        import '/scram/scramjet.all.js';
+        import('https://altior-portal.onrender.com/scram/scramjet.all.js').then(() => {
+            initScramjet();
+        }).catch(err => console.error('Failed to load scramjet.all.js:', err));
 
         const input = document.getElementById('url-input');
         const button = document.getElementById('go-btn');
@@ -195,14 +196,14 @@
                 const { ScramjetController } = $scramjetLoadController();
                 scramjet = new ScramjetController({
                     files: {
-                        wasm: '/scram/scramjet.wasm.wasm',
-                        all: '/scram/scramjet.all.js',
-                        sync: '/scram/scramjet.sync.js',
+                        wasm: 'https://altior-portal.onrender.com/scram/scramjet.wasm.wasm',
+                        all: 'https://altior-portal.onrender.com/scram/scramjet.all.js',
+                        sync: 'https://altior-portal.onrender.com/scram/scramjet.sync.js',
                     }
                 });
                 await scramjet.init();
                 isScramjetReady = true;
-                console.log('Scramjet initialized');
+                console.log('Scramjet initialized (cross-origin)');
             } catch (err) {
                 console.error('Scramjet init failed:', err);
                 errorDiv.textContent = 'Failed to initialize proxy engine.';
@@ -214,7 +215,8 @@
             if (!('serviceWorker' in navigator)) {
                 throw new Error('Service workers not supported');
             }
-            const registration = await navigator.serviceWorker.register('/sw.js');
+            const swUrl = 'https://raw.githubusercontent.com/ltorl/altior-portal/refs/heads/main/scramjet/sw.js';
+            const registration = await navigator.serviceWorker.register(swUrl);
             console.log('Service Worker registered:', registration);
         }
 
@@ -252,12 +254,12 @@
                 return;
             }
 
-            const connection = new BareMuxConnection('/baremux/worker.js');
-            const wispUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/wisp/`;
+            const connection = new BareMuxConnection('https://altior-portal.onrender.com/baremux/worker.js');
+            const wispUrl = `wss://altior-portal.onrender.com/wisp/`;
             
             const currentTransport = await connection.getTransport();
-            if (currentTransport !== '/libcurl/index.mjs') {
-                await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
+            if (currentTransport !== 'https://altior-portal.onrender.com/libcurl/index.mjs') {
+                await connection.setTransport('https://altior-portal.onrender.com/libcurl/index.mjs', [{ websocket: wispUrl }]);
                 console.log('Transport set to libcurl with wisp:', wispUrl);
             }
 
@@ -283,7 +285,6 @@
             if (e.key === 'Enter') navigate(input.value);
         });
 
-        initScramjet();
     </script>
 </body>
 </html>
