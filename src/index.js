@@ -1,5 +1,5 @@
 import { createServer } from "node:http";
-import { fileURLToPath } from "url";
+import { fileURLToPath } from "node:url";
 import { hostname } from "node:os";
 import fs from "node:fs";
 import path from "node:path";
@@ -11,8 +11,11 @@ import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 
-const rootPath = process.cwd();
-const scramjetLocalPath = path.join(rootPath, "scramjet");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const rootPath = path.resolve(__dirname, ".."); 
+const scramjetLocalPath = path.resolve(rootPath, "scramjet");
 
 logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
