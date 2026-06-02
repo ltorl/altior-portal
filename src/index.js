@@ -1,6 +1,8 @@
 import { createServer } from "node:http";
 import { fileURLToPath } from "url";
 import { hostname } from "node:os";
+import fs from "node:fs";
+import path from "node:path";
 import { server as wisp, logging } from "@mercuryworkshop/wisp-js/server";
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
@@ -9,8 +11,8 @@ import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 
-const rootPath = fileURLToPath(new URL("../", import.meta.url));
-const scramjetLocalPath = fileURLToPath(new URL("../scramjet/", import.meta.url));
+const rootPath = process.cwd();
+const scramjetLocalPath = path.join(rootPath, "scramjet");
 
 logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
@@ -59,15 +61,28 @@ fastify.register(fastifyStatic, {
 });
 
 fastify.get("/", (req, reply) => {
-	return reply.type("text/html").sendFile("index.html", rootPath);
+	try {
+		const html = fs.readFileSync(path.join(rootPath, "index.html"), "utf8");
+		return reply.type("text/html").send(html);
+	} catch (err) {
+		return reply.code(500).type("text/plain").send("Error loading index.html: " + err.message);
+	}
 });
 
 fastify.get("/sw.js", (req, reply) => {
-	return reply.type("text/javascript").sendFile("sw.js", rootPath);
+	try {
+		const js = fs.readFileSync(path.join(rootPath, "sw.js"), "utf8");
+		return reply.type("text/javascript").send(js);
+	} catch (err) {
+		return reply.code(500).type("text/plain").send("Error loading sw.js: " + err.message);
+	}
 });
 
-fastify.setNotFoundHandler((res, reply) => {
-	return reply.code(404).type("text/html").sendFile("404.html", rootPath);
+fastify.setNotFoundHandler((req, reply) => {
+	return reply
+		.code(404)
+		.type("text/html")
+		.send("<h1>404 Not Found</h1><p>The requested resource could not be found on this server.</p>");
 });
 
 fastify.server.on("listening", () => {
