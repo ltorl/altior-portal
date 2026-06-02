@@ -4,7 +4,6 @@ import '/scram/scramjet.all.js';
 
 const input = document.getElementById('url-input');
 const button = document.getElementById('go-btn');
-const container = document.getElementById('search-container');
 const errorDiv = document.getElementById('error-message');
 
 let scramjet = null;
@@ -30,18 +29,27 @@ async function initScramjet() {
     }
 }
 
-async function registerSW() {
-    if (!('serviceWorker' in navigator)) {
-        throw new Error('Service workers not supported');
-    }
+async function waitForServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
     const registration = await navigator.serviceWorker.register('/sw.js');
-    console.log('Service Worker registered:', registration);
+    // Wait until the service worker is active (not just installed)
+    if (registration.active) return;
+    if (registration.waiting) {
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
+    await new Promise(resolve => {
+        const check = () => {
+            if (registration.active) resolve();
+            else setTimeout(check, 100);
+        };
+        check();
+    });
+    console.log('Service Worker active');
 }
 
 function normalizeUrl(query) {
     query = query.trim();
     if (!query) return null;
-    
     const isUrl = query.includes('.') && !query.includes(' ');
     if (!isUrl) {
         return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
@@ -64,26 +72,25 @@ async function navigate(query) {
         return;
     }
 
-    // Ensure service worker is registered from the main page (popup will inherit it)
     try {
-        await registerSW();
+        // Ensure service worker is active before opening popup
+        await waitForServiceWorker();
     } catch (err) {
-        errorDiv.textContent = 'Service Worker registration failed: ' + err.message;
+        errorDiv.textContent = 'Service Worker activation failed: ' + err.message;
         errorDiv.style.display = 'block';
         return;
     }
 
-    // Setup transport (shared)
+    // Setup transport
     const connection = new BareMuxConnection('/baremux/worker.js');
     const wispUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/wisp/`;
-    
     const currentTransport = await connection.getTransport();
     if (currentTransport !== '/libcurl/index.mjs') {
         await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
         console.log('Transport set to libcurl with wisp:', wispUrl);
     }
 
-    // Open a new about:blank popup with no header
+    // Open about:blank popup
     const popupWin = window.open('about:blank', '_blank');
     if (!popupWin) {
         errorDiv.textContent = 'Popup blocked! Please allow popups for this site.';
@@ -91,7 +98,7 @@ async function navigate(query) {
         return;
     }
 
-    // Popup HTML – service worker registration removed
+    // Popup HTML – NO service worker registration
     const popupHtml = `
         <!DOCTYPE html>
         <html>
@@ -105,7 +112,6 @@ async function navigate(query) {
             </style>
         </head>
         <body>
-            <iframe id="proxyFrame"></iframe>
             <script type="importmap">
                 {
                     "imports": {
@@ -127,9 +133,8 @@ async function navigate(query) {
                         });
                         await scramjet.init();
 
-                        await new Promise(r => setTimeout(r, 100));
-
-                        // No service worker registration here – it's already active from the main page
+                        // Small delay for stability
+                        await new Promise(r => setTimeout(r, 50));
 
                         const connection = new BareMuxConnection('/baremux/worker.js');
                         const wispUrl = '${wispUrl}';
