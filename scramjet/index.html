@@ -147,17 +147,17 @@
         }
     </style>
 
-    <script src="/scram/scramjet.all.js" defer></script>
-    
     <script src="https://unpkg.com/@mercuryworkshop/epoxy-transport@3/dist/index.js"></script>
     <script>
-        window.EpoxyClient = window.EpoxyTransport?.EpoxyClient;
+        window.EpoxyClient = window.EpoxyTransport?.EpoxyClient || window.EpoxyTransport;
     </script>
 
-    <script src="./config.js" defer></script>
-    <script src="./register-sw.js" defer></script>
-    <script src="./search.js" defer></script>
-    <script src="./index.js" defer></script>
+    <script src="/scram/scramjet.all.js" defer></script>
+
+    <script src="./scramjet/config.js" defer></script>
+    <script src="./scramjet/register-sw.js" defer></script>
+    <script src="./scramjet/search.js" defer></script>
+    <script src="./scramjet/index.js" defer></script>
 </head>
 <body>
 
