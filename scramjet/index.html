@@ -124,25 +124,6 @@
             transform: scale(1.02);
         }
 
-        #content-frame { 
-            position: absolute;
-            top: 80px; 
-            left: 0;
-            width: 100%; 
-            height: calc(100vh - 80px);
-            border: none; 
-            background-color: #fff;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.8s ease 0.2s;
-            z-index: 1;
-        }
-
-        #content-frame.visible {
-            opacity: 1;
-            pointer-events: all;
-        }
-
         .error-message {
             color: #ff6b6b;
             font-size: 0.9rem;
@@ -155,7 +136,6 @@
     </style>
 </head>
 <body>
-
     <div id="search-container">
         <h1 class="title">proxy</h1>
         <div class="input-group">
@@ -164,9 +144,8 @@
         </div>
         <div id="error-message" class="error-message"></div>
     </div>
-    
-    <iframe id="content-frame"></iframe>
 
+    <!-- Import map for bare modules -->
     <script type="importmap">
         {
             "imports": {
@@ -175,114 +154,7 @@
         }
     </script>
 
-    <script type="module">
-        import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
-        
-        import '/scram/scramjet.all.js';
-
-        const input = document.getElementById('url-input');
-        const button = document.getElementById('go-btn');
-        const container = document.getElementById('search-container');
-        const errorDiv = document.getElementById('error-message');
-        let currentIframe = document.getElementById('content-frame');
-
-        let scramjet = null;
-        let isScramjetReady = false;
-
-        async function initScramjet() {
-            try {
-                const { ScramjetController } = $scramjetLoadController();
-                scramjet = new ScramjetController({
-                    files: {
-                        wasm: '/scram/scramjet.wasm.wasm',
-                        all: '/scram/scramjet.all.js',
-                        sync: '/scram/scramjet.sync.js',
-                    }
-                });
-                await scramjet.init();
-                isScramjetReady = true;
-                console.log('Scramjet initialized');
-            } catch (err) {
-                console.error('Scramjet init failed:', err);
-                errorDiv.textContent = 'Failed to initialize proxy engine.';
-                errorDiv.style.display = 'block';
-            }
-        }
-
-        async function registerSW() {
-            if (!('serviceWorker' in navigator)) {
-                throw new Error('Service workers not supported');
-            }
-            const registration = await navigator.serviceWorker.register('/sw.js');
-            console.log('Service Worker registered:', registration);
-        }
-
-        function normalizeUrl(query) {
-            query = query.trim();
-            if (!query) return null;
-            
-            const isUrl = query.includes('.') && !query.includes(' ');
-            if (!isUrl) {
-                return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
-            }
-            if (!query.startsWith('http://') && !query.startsWith('https://')) {
-                return 'https://' + query;
-            }
-            return query;
-        }
-
-        async function navigate(query) {
-            const url = normalizeUrl(query);
-            if (!url) return;
-
-            errorDiv.style.display = 'none';
-
-            if (!isScramjetReady) {
-                errorDiv.textContent = 'Proxy engine is still loading, please wait.';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            try {
-                await registerSW();
-            } catch (err) {
-                errorDiv.textContent = 'Service Worker registration failed: ' + err.message;
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            const connection = new BareMuxConnection('/baremux/worker.js');
-            const wispUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/wisp/`;
-            
-            const currentTransport = await connection.getTransport();
-            if (currentTransport !== '/libcurl/index.mjs') {
-                await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
-                console.log('Transport set to libcurl with wisp:', wispUrl);
-            }
-
-            const frameObj = scramjet.createFrame();
-            const newIframe = frameObj.frame;
-            newIframe.id = 'content-frame';
-            newIframe.classList.add('visible');
-            
-            if (currentIframe && currentIframe.parentNode) {
-                currentIframe.parentNode.replaceChild(newIframe, currentIframe);
-            } else {
-                document.body.appendChild(newIframe);
-            }
-            currentIframe = newIframe;
-            
-            frameObj.go(url);
-            
-            container.classList.add('active-mode');
-        }
-
-        button.addEventListener('click', () => navigate(input.value));
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') navigate(input.value);
-        });
-
-        initScramjet();
-    </script>
+    <!-- Main portal script -->
+    <script type="module" src="/index.js"></script>
 </body>
 </html>
