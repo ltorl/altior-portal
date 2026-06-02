@@ -109,37 +109,42 @@ async function navigate(query) {
                 }
             <\/script>
             <script type="module">
-                import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
-                import('/scram/scramjet.all.js').then(async () => {
-                    const { ScramjetController } = $scramjetLoadController();
-                    const scramjet = new ScramjetController({
-                        files: {
-                            wasm: '/scram/scramjet.wasm.wasm',
-                            all: '/scram/scramjet.all.js',
-                            sync: '/scram/scramjet.sync.js',
-                        }
-                    });
-                    await scramjet.init();
+                window.addEventListener('DOMContentLoaded', async () => {
+                    try {
+                        import('/scram/scramjet.all.js').then(async () => {
+                            const { ScramjetController } = $scramjetLoadController();
+                            const scramjet = new ScramjetController({
+                                files: {
+                                    wasm: '/scram/scramjet.wasm.wasm',
+                                    all: '/scram/scramjet.all.js',
+                                    sync: '/scram/scramjet.sync.js',
+                                }
+                            });
+                            await scramjet.init();
 
-                    if ('serviceWorker' in navigator) {
-                        await navigator.serviceWorker.register('/sw.js');
+                            if ('serviceWorker' in navigator) {
+                                await navigator.serviceWorker.register('/sw.js');
+                            }
+
+                            const connection = new BareMuxConnection('/baremux/worker.js');
+                            const wispUrl = '${wispUrl}';
+                            const currentTransport = await connection.getTransport();
+                            if (currentTransport !== '/libcurl/index.mjs') {
+                                await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
+                            }
+
+                            const frameObj = scramjet.createFrame();
+                            const frame = frameObj.frame;
+                            frame.style.width = '100%';
+                            frame.style.height = '100%';
+                            frame.style.border = 'none';
+                            document.body.appendChild(frame);
+                            frameObj.go('${url.replace(/'/g, "\\'")}');
+                        }).catch(err => console.error('Popup Scramjet init error:', err));
+                    } catch (err) {
+                        console.error('Popup initialization error:', err);
                     }
-
-                    const connection = new BareMuxConnection('/baremux/worker.js');
-                    const wispUrl = '${wispUrl}';
-                    const currentTransport = await connection.getTransport();
-                    if (currentTransport !== '/libcurl/index.mjs') {
-                        await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
-                    }
-
-                    const frameObj = scramjet.createFrame();
-                    const frame = frameObj.frame;
-                    frame.style.width = '100%';
-                    frame.style.height = '100%';
-                    frame.style.border = 'none';
-                    document.body.appendChild(frame);
-                    frameObj.go('${url.replace(/'/g, "\\'")}');
-                }).catch(err => console.error('Popup Scramjet init error:', err));
+                });
             <\/script>
         </body>
         </html>
@@ -149,7 +154,6 @@ async function navigate(query) {
     popupWin.document.write(popupHtml);
     popupWin.document.close();
 
-    container.classList.add('active-mode');
     input.value = '';
 }
 
