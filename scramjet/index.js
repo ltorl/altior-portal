@@ -1,67 +1,55 @@
-"use strict";
-/**
- * @type {HTMLFormElement}
- */
-const form = document.getElementById("sj-form");
-/**
- * @type {HTMLInputElement}
- */
-const address = document.getElementById("sj-address");
-/**
- * @type {HTMLInputElement}
- */
-const searchEngine = document.getElementById("sj-search-engine");
-/**
- * @type {HTMLParagraphElement}
- */
-const error = document.getElementById("sj-error");
-/**
- * @type {HTMLPreElement}
- */
-const errorCode = document.getElementById("sj-error-code");
+import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
+import '/scram/scramjet.all.js';
 
-const { ScramjetController } = $scramjetLoadController();
+const input = document.getElementById('url-input');
+const button = document.getElementById('go-btn');
+const container = document.getElementById('search-container');
+const errorDiv = document.getElementById('error-message');
 
-const scramjet = new ScramjetController({
-	files: {
-		wasm: "/scram/scramjet.wasm.wasm",
-		all: "/scram/scramjet.all.js",
-		sync: "/scram/scramjet.sync.js",
-	},
-});
+let scramjet = null;
+let isScramjetReady = false;
 
-scramjet.init();
+async function initScramjet() {
+    try {
+        const { ScramjetController } = $scramjetLoadController();
+        scramjet = new ScramjetController({
+            files: {
+                wasm: '/scram/scramjet.wasm.wasm',
+                all: '/scram/scramjet.all.js',
+                sync: '/scram/scramjet.sync.js',
+            }
+        });
+        await scramjet.init();
+        isScramjetReady = true;
+        console.log('Scramjet initialized');
+    } catch (err) {
+        console.error('Scramjet init failed:', err);
+        errorDiv.textContent = 'Failed to initialize proxy engine.';
+        errorDiv.style.display = 'block';
+    }
+}
 
-const connection = new BareMux.BareMuxConnection("/baremux/worker.js");
+async function registerSW() {
+    if (!('serviceWorker' in navigator)) {
+        throw new Error('Service workers not supported');
+    }
+    const registration = await navigator.serviceWorker.register('/sw.js');
+    console.log('Service Worker registered:', registration);
+}
 
-form.addEventListener("submit", async (event) => {
-	event.preventDefault();
-
-	try {
-		await registerSW();
-	} catch (err) {
-		error.textContent = "Failed to register service worker.";
-		errorCode.textContent = err.toString();
-		throw err;
-	}
-
-	const url = search(address.value, searchEngine.value);
-
-	let wispUrl =
-		(location.protocol === "https:" ? "wss" : "ws") +
-		"://" +
-		location.host +
-		"/wisp/";
-	if ((await connection.getTransport()) !== "/libcurl/index.mjs") {
-		await connection.setTransport("/libcurl/index.mjs", [
-			{ websocket: wispUrl },
-		]);
-	}
-	const frame = scramjet.createFrame();
-	frame.frame.id = "sj-frame";
-	document.body.appendChild(frame.frame);
-	frame.go(url);
-});
+function normalizeUrl(query) {
+    query = query.trim();
+    if (!query) return null;
+    
+    const isUrl = query.includes('.') && !query.includes(' ');
+    if (!isUrl) {
+        return `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
+    }
+    if (!query.startsWith('http://') && !query.startsWith('https://')) {
+        return 'https://' + query;
+    }
+    return query;
+}
 
 async function navigate(query) {
     const url = normalizeUrl(query);
@@ -133,12 +121,10 @@ async function navigate(query) {
                     });
                     await scramjet.init();
 
-                    // Register service worker (same origin)
                     if ('serviceWorker' in navigator) {
                         await navigator.serviceWorker.register('/sw.js');
                     }
 
-                    // Setup transport (reuse the same wisp URL)
                     const connection = new BareMuxConnection('/baremux/worker.js');
                     const wispUrl = '${wispUrl}';
                     const currentTransport = await connection.getTransport();
@@ -146,7 +132,6 @@ async function navigate(query) {
                         await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
                     }
 
-                    // Create and navigate the frame
                     const frameObj = scramjet.createFrame();
                     const frame = frameObj.frame;
                     frame.style.width = '100%';
@@ -164,5 +149,13 @@ async function navigate(query) {
     popupWin.document.write(popupHtml);
     popupWin.document.close();
 
-    //input.value = '';
+    container.classList.add('active-mode');
+    input.value = '';
 }
+
+button.addEventListener('click', () => navigate(input.value));
+input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') navigate(input.value);
+});
+
+initScramjet();
