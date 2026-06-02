@@ -178,7 +178,7 @@
         async function registerSW() {
             if ('serviceWorker' in navigator) {
                 try {
-                    await navigator.serviceWorker.register('./scramjet/sw.js', {
+                    await navigator.serviceWorker.register('./sw.js', {
                         scope: __scramjet.prefix 
                     });
                     console.log('Scramjet Service Worker active.');
