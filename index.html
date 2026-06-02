@@ -149,14 +149,13 @@
 
     <script src="https://unpkg.com/@mercuryworkshop/epoxy-transport@3/dist/index.js"></script>
     <script>
-        // Maps the global object to what the repo's index.js expects
         window.EpoxyClient = window.EpoxyTransport?.EpoxyClient;
     </script>
 
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/config.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/register-sw.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/search.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/index.js"></script>
+    <script src="./config.js" defer></script>
+    <script src="./register-sw.js" defer></script>
+    <script src="./search.js" defer></script>
+    <script src="./index.js" defer></script>
 </head>
 <body>
 
@@ -176,7 +175,6 @@
         const iframe = document.getElementById('content-frame');
         const container = document.getElementById('search-container');
 
-        // 1. Register Local Service Worker (Requires local sw.js file)
         async function registerSW() {
             if ('serviceWorker' in navigator) {
                 try {
@@ -190,7 +188,6 @@
             }
         }
 
-        // 2. Initialize Epoxy connection to the public demo cluster
         function initEpoxy() {
             try {
                 window.epoxyTransport = new EpoxyClient('wss://wisp.mercurywork.shop/');
@@ -200,7 +197,6 @@
             }
         }
 
-        // 3. Navigation controller and dynamic layout trigger
         function navigate(query) {
             query = query.trim();
             if (!query) return;
@@ -209,28 +205,23 @@
             const isUrl = url.includes('.') && !url.includes(' ');
             
             if (!isUrl) {
-                // Fallback to DuckDuckGo search as specified in placeholder text
                 url = `https://duckduckgo.com/?q=${encodeURIComponent(query)}`;
             } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
                 url = 'https://' + url;
             }
 
-            // Trigger structural UI changes smoothly
             container.classList.add('active-mode');
             iframe.classList.add('visible');
 
-            // Encode destination payload through Scramjet definitions
             const encodedUrl = __scramjet.prefix + __scramjet.encodeUrl(url);
             iframe.src = encodedUrl;
         }
 
-        // Interactive Event Triggers
         button.addEventListener('click', () => navigate(input.value));
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') navigate(input.value);
         });
 
-        // Bootstrap applications on DOM ready
         window.addEventListener('DOMContentLoaded', () => {
             registerSW();
             initEpoxy();
