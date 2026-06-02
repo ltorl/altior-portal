@@ -1,4 +1,3 @@
-// scramjet/index.js
 import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
 import '/scram/scramjet.all.js';
 
@@ -32,7 +31,6 @@ async function initScramjet() {
 async function waitForServiceWorker() {
     if (!('serviceWorker' in navigator)) return;
     const registration = await navigator.serviceWorker.register('/sw.js');
-    // Wait until the service worker is active (not just installed)
     if (registration.active) return;
     if (registration.waiting) {
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -73,7 +71,6 @@ async function navigate(query) {
     }
 
     try {
-        // Ensure service worker is active before opening popup
         await waitForServiceWorker();
     } catch (err) {
         errorDiv.textContent = 'Service Worker activation failed: ' + err.message;
@@ -81,7 +78,6 @@ async function navigate(query) {
         return;
     }
 
-    // Setup transport
     const connection = new BareMuxConnection('/baremux/worker.js');
     const wispUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/wisp/`;
     const currentTransport = await connection.getTransport();
@@ -90,7 +86,6 @@ async function navigate(query) {
         console.log('Transport set to libcurl with wisp:', wispUrl);
     }
 
-    // Open about:blank popup
     const popupWin = window.open('about:blank', '_blank');
     if (!popupWin) {
         errorDiv.textContent = 'Popup blocked! Please allow popups for this site.';
@@ -98,7 +93,6 @@ async function navigate(query) {
         return;
     }
 
-    // Popup HTML – NO service worker registration
     const popupHtml = `
         <!DOCTYPE html>
         <html>
@@ -120,6 +114,7 @@ async function navigate(query) {
                 }
             <\/script>
             <script type="module">
+                import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
                 window.addEventListener('load', async () => {
                     try {
                         await import('/scram/scramjet.all.js');
@@ -132,17 +127,13 @@ async function navigate(query) {
                             }
                         });
                         await scramjet.init();
-
-                        // Small delay for stability
                         await new Promise(r => setTimeout(r, 50));
-
                         const connection = new BareMuxConnection('/baremux/worker.js');
                         const wispUrl = '${wispUrl}';
                         const currentTransport = await connection.getTransport();
                         if (currentTransport !== '/libcurl/index.mjs') {
                             await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
                         }
-
                         const frameObj = scramjet.createFrame();
                         const frame = frameObj.frame;
                         frame.style.width = '100%';
