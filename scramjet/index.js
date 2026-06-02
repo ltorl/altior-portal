@@ -1,3 +1,4 @@
+// scramjet/index.js
 import { BareMuxConnection } from '@mercuryworkshop/bare-mux';
 import '/scram/scramjet.all.js';
 
@@ -63,6 +64,7 @@ async function navigate(query) {
         return;
     }
 
+    // Ensure service worker is registered from the main page (popup will inherit it)
     try {
         await registerSW();
     } catch (err) {
@@ -89,6 +91,7 @@ async function navigate(query) {
         return;
     }
 
+    // Popup HTML – service worker registration removed
     const popupHtml = `
         <!DOCTYPE html>
         <html>
@@ -111,7 +114,6 @@ async function navigate(query) {
                 }
             <\/script>
             <script type="module">
-                // Wait for the window to fully load before doing anything
                 window.addEventListener('load', async () => {
                     try {
                         await import('/scram/scramjet.all.js');
@@ -125,12 +127,9 @@ async function navigate(query) {
                         });
                         await scramjet.init();
 
-                        // Small delay to ensure everything is stable
                         await new Promise(r => setTimeout(r, 100));
 
-                        if ('serviceWorker' in navigator) {
-                            await navigator.serviceWorker.register('/sw.js');
-                        }
+                        // No service worker registration here – it's already active from the main page
 
                         const connection = new BareMuxConnection('/baremux/worker.js');
                         const wispUrl = '${wispUrl}';
