@@ -71,6 +71,7 @@ async function navigate(query) {
         return;
     }
 
+    // Setup transport (shared)
     const connection = new BareMuxConnection('/baremux/worker.js');
     const wispUrl = `${location.protocol === 'https:' ? 'wss:' : 'ws:'}//${location.host}/wisp/`;
     
@@ -80,6 +81,7 @@ async function navigate(query) {
         console.log('Transport set to libcurl with wisp:', wispUrl);
     }
 
+    // Open a new about:blank popup with no header
     const popupWin = window.open('about:blank', '_blank');
     if (!popupWin) {
         errorDiv.textContent = 'Popup blocked! Please allow popups for this site.';
@@ -109,40 +111,43 @@ async function navigate(query) {
                 }
             <\/script>
             <script type="module">
-                window.addEventListener('DOMContentLoaded', async () => {
+                // Wait for the window to fully load before doing anything
+                window.addEventListener('load', async () => {
                     try {
-                        import('/scram/scramjet.all.js').then(async () => {
-                            const { ScramjetController } = $scramjetLoadController();
-                            const scramjet = new ScramjetController({
-                                files: {
-                                    wasm: '/scram/scramjet.wasm.wasm',
-                                    all: '/scram/scramjet.all.js',
-                                    sync: '/scram/scramjet.sync.js',
-                                }
-                            });
-                            await scramjet.init();
-
-                            if ('serviceWorker' in navigator) {
-                                await navigator.serviceWorker.register('/sw.js');
+                        await import('/scram/scramjet.all.js');
+                        const { ScramjetController } = $scramjetLoadController();
+                        const scramjet = new ScramjetController({
+                            files: {
+                                wasm: '/scram/scramjet.wasm.wasm',
+                                all: '/scram/scramjet.all.js',
+                                sync: '/scram/scramjet.sync.js',
                             }
+                        });
+                        await scramjet.init();
 
-                            const connection = new BareMuxConnection('/baremux/worker.js');
-                            const wispUrl = '${wispUrl}';
-                            const currentTransport = await connection.getTransport();
-                            if (currentTransport !== '/libcurl/index.mjs') {
-                                await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
-                            }
+                        // Small delay to ensure everything is stable
+                        await new Promise(r => setTimeout(r, 100));
 
-                            const frameObj = scramjet.createFrame();
-                            const frame = frameObj.frame;
-                            frame.style.width = '100%';
-                            frame.style.height = '100%';
-                            frame.style.border = 'none';
-                            document.body.appendChild(frame);
-                            frameObj.go('${url.replace(/'/g, "\\'")}');
-                        }).catch(err => console.error('Popup Scramjet init error:', err));
+                        if ('serviceWorker' in navigator) {
+                            await navigator.serviceWorker.register('/sw.js');
+                        }
+
+                        const connection = new BareMuxConnection('/baremux/worker.js');
+                        const wispUrl = '${wispUrl}';
+                        const currentTransport = await connection.getTransport();
+                        if (currentTransport !== '/libcurl/index.mjs') {
+                            await connection.setTransport('/libcurl/index.mjs', [{ websocket: wispUrl }]);
+                        }
+
+                        const frameObj = scramjet.createFrame();
+                        const frame = frameObj.frame;
+                        frame.style.width = '100%';
+                        frame.style.height = '100%';
+                        frame.style.border = 'none';
+                        document.body.appendChild(frame);
+                        frameObj.go('${url.replace(/'/g, "\\'")}');
                     } catch (err) {
-                        console.error('Popup initialization error:', err);
+                        console.error('Popup Scramjet init error:', err);
                     }
                 });
             <\/script>
