@@ -14,9 +14,25 @@ import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const rootPath = path.resolve(__dirname, ".."); 
-const scramjetLocalPath = path.resolve(rootPath, "scramjet");
+const candidates = [
+	path.resolve(__dirname, ".."),          
+	__dirname,                              
+	path.resolve(__dirname, "../public"),   
+	path.resolve(__dirname, "../scramjet"), 
+	process.cwd(),                          
+];
 
+let publicPath = path.resolve(__dirname, ".."); 
+for (const candidate of candidates) {
+	if (fs.existsSync(path.join(candidate, "index.html"))) {
+		publicPath = candidate;
+		break;
+	}
+}
+
+console.log(`[Render Path Solver] Detected index.html root directory at: ${publicPath}`);
+
+// Wisp Configuration
 logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
 	allow_udp_streams: false,
@@ -40,8 +56,7 @@ const fastify = Fastify({
 });
 
 fastify.register(fastifyStatic, {
-	root: scramjetLocalPath,
-	prefix: "/scramjet/",
+	root: publicPath,
 	decorateReply: true,
 });
 
@@ -65,8 +80,12 @@ fastify.register(fastifyStatic, {
 
 fastify.get("/", (req, reply) => {
 	try {
-		const html = fs.readFileSync(path.join(rootPath, "index.html"), "utf8");
-		return reply.type("text/html").send(html);
+		const htmlPath = path.join(publicPath, "index.html");
+		if (fs.existsSync(htmlPath)) {
+			const html = fs.readFileSync(htmlPath, "utf8");
+			return reply.type("text/html").send(html);
+		}
+		return reply.code(404).type("text/html").send("<h1>404 Not Found</h1><p>index.html could not be found.</p>");
 	} catch (err) {
 		return reply.code(500).type("text/plain").send("Error loading index.html: " + err.message);
 	}
@@ -74,8 +93,16 @@ fastify.get("/", (req, reply) => {
 
 fastify.get("/sw.js", (req, reply) => {
 	try {
-		const js = fs.readFileSync(path.join(rootPath, "sw.js"), "utf8");
-		return reply.type("text/javascript").send(js);
+		let swPath = path.join(publicPath, "sw.js");
+		if (!fs.existsSync(swPath)) {
+			swPath = path.join(publicPath, "scramjet", "sw.js");
+		}
+
+		if (fs.existsSync(swPath)) {
+			const js = fs.readFileSync(swPath, "utf8");
+			return reply.type("text/javascript").send(js);
+		}
+		return reply.code(404).type("text/plain").send("sw.js not found");
 	} catch (err) {
 		return reply.code(500).type("text/plain").send("Error loading sw.js: " + err.message);
 	}
