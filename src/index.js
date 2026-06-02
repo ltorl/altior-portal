@@ -9,11 +9,9 @@ import { scramjetPath } from "@mercuryworkshop/scramjet/path";
 import { libcurlPath } from "@mercuryworkshop/libcurl-transport";
 import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 
-// Paths relative to 'src/index.js'
 const rootPath = fileURLToPath(new URL("../", import.meta.url));
 const scramjetLocalPath = fileURLToPath(new URL("../scramjet/", import.meta.url));
 
-// Wisp Configuration: Refer to the documentation at https://www.npmjs.com/package/@mercuryworkshop/wisp-js
 logging.set_level(logging.NONE);
 Object.assign(wisp.options, {
 	allow_udp_streams: false,
@@ -36,14 +34,12 @@ const fastify = Fastify({
 	},
 });
 
-// 1. Serve files inside your local 'scramjet/' directory under the '/scramjet/' URL path
 fastify.register(fastifyStatic, {
 	root: scramjetLocalPath,
 	prefix: "/scramjet/",
 	decorateReply: true,
 });
 
-// 2. Serve internal node module dependencies under their designated prefixes
 fastify.register(fastifyStatic, {
 	root: scramjetPath,
 	prefix: "/scram/",
@@ -62,12 +58,10 @@ fastify.register(fastifyStatic, {
 	decorateReply: false,
 });
 
-// 3. Explicitly serve your root-level index.html on the homepage
 fastify.get("/", (req, reply) => {
 	return reply.type("text/html").sendFile("index.html", rootPath);
 });
 
-// 4. Explicitly serve your root-level sw.js so it has top-level scope access
 fastify.get("/sw.js", (req, reply) => {
 	return reply.type("text/javascript").sendFile("sw.js", rootPath);
 });
