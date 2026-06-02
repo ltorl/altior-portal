@@ -147,9 +147,16 @@
         }
     </style>
 
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/codecs.js"></script>
+    <script src="https://unpkg.com/@mercuryworkshop/epoxy-transport@3/dist/index.js"></script>
+    <script>
+        // Maps the global object to what the repo's index.js expects
+        window.EpoxyClient = window.EpoxyTransport?.EpoxyClient;
+    </script>
+
     <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/config.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/epoxy/index.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/register-sw.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/search.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/ltorl/Scramjet-App@main/public/index.js"></script>
 </head>
 <body>
 
