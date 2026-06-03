@@ -98,7 +98,11 @@ async function navigate(query) {
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Proxied Site</title>
+            <title>New Tab</title>
+            <link rel="icon" type="image/png" sizes="48x48" media="(prefers-color-scheme: light)"
+                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/NewTabIcon.png">
+            <link rel="icon" type="image/png" sizes="48x48" media="(prefers-color-scheme: dark)"
+                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/NewTabIconLight.png">
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body { overflow: hidden; height: 100vh; width: 100vw; }
