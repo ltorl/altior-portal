@@ -247,9 +247,9 @@ async function saveCurrentSite() {
         return;
     }
 
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-        url = 'https://' + url;
-    }
+    //if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    //    url = 'https://' + url;
+    //}
 
     try {
         new URL(url);
