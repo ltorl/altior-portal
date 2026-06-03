@@ -198,12 +198,31 @@ function renderSavedSites() {
     } else {
         savedSection.hidden = false;
         savedGrid.innerHTML = savedSites.map((site, index) => `
-            <div class="quick-link" data-url="${escapeHtml(site.url)}" data-index="${index}">
+            <div class="quick-link saved-site-item" data-url="${escapeHtml(site.url)}" data-index="${index}" style="position: relative; padding-right: 30px;">
                 ${escapeHtml(site.title || site.url)}
+                <span class="delete-saved" data-index="${index}" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold; font-size: 18px; color: #ff6b6b;">✖</span>
             </div>
         `).join('');
     }
     initQuickLinks();
+    attachDeleteEvents();
+}
+
+function attachDeleteEvents() {
+    document.querySelectorAll('.delete-saved').forEach(btn => {
+        btn.removeEventListener('click', handleDelete);
+        btn.addEventListener('click', handleDelete);
+    });
+}
+
+function handleDelete(e) {
+    e.stopPropagation();
+    const index = parseInt(e.currentTarget.getAttribute('data-index'));
+    if (!isNaN(index)) {
+        savedSites.splice(index, 1);
+        localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
+        renderSavedSites();
+    }
 }
 
 function escapeHtml(text) {
