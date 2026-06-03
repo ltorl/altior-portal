@@ -162,6 +162,23 @@ input.addEventListener('keydown', (e) => {
     if (e.key === 'Enter') navigate(input.value);
 });
 
+window.navigate = navigate;
+
+function initQuickLinks() {
+    const quickLinks = document.querySelectorAll('.quick-link');
+    quickLinks.forEach(link => {
+        link.addEventListener('click', (e) => {
+            const url = link.getAttribute('data-url');
+            if (url) navigate(url);
+        });
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initQuickLinks);
+} else {
+    initQuickLinks();
+}
+
 initScramjet();
 
-window.navigate = navigate;
