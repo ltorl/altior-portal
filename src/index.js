@@ -15,7 +15,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 let publicPath = path.resolve(process.cwd(), "scramjet");
-let notMyOrign = path.resolve(process.cwd(), "notmyorgin"),
 
 if (!fs.existsSync(path.join(publicPath, "index.html"))) {
     console.error(`[Fatal] index.html not found at ${publicPath}`);
@@ -65,7 +64,7 @@ fastify.register(fastifyStatic, {
 });
 
 fastify.register(fastifyStatic, {
-    root: notMyOrign,
+    root: path.resolve(process.cwd(), "notmyorgin"),
     prefix: "/notmyorgin/",
     decorateReply: false,
 });
