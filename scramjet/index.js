@@ -190,11 +190,13 @@ function loadSavedSites() {
 
 function renderSavedSites() {
     const savedGrid = document.getElementById('saved-grid');
-    if (!savedGrid) return;
+    const savedSection = document.getElementById('saved-section');
+    if (!savedGrid || !savedSection) return;
 
     if (savedSites.length === 0) {
-        savedGrid.innerHTML = '<div class="quick-link" style="grid-column: 1/-1; text-align: center; background: rgba(255,255,255,0.05);">No saved sites yet. Save your favorites above!</div>';
+        savedSection.hidden = true;
     } else {
+        savedSection.hidden = false;
         savedGrid.innerHTML = savedSites.map((site, index) => `
             <div class="quick-link" data-url="${escapeHtml(site.url)}" data-index="${index}">
                 ${escapeHtml(site.title || site.url)}
