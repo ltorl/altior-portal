@@ -174,155 +174,141 @@ function initQuickLinks() {
     });
 }
 
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initQuickLinks);
-} else {
-    initQuickLinks();
-}
+let savedSites = [];
 
-    let savedSites = [];
-
-    function loadSavedSites() {
-        const stored = localStorage.getItem('altior_saved_sites');
-        if (stored) {
-            try {
-                savedSites = JSON.parse(stored);
-                renderSavedSites();
-            } catch(e) {
-                console.error('Failed to load saved sites:', e);
-            }
+function loadSavedSites() {
+    const stored = localStorage.getItem('altior_saved_sites');
+    if (stored) {
+        try {
+            savedSites = JSON.parse(stored);
+            renderSavedSites();
+        } catch (e) {
+            console.error('Failed to load saved sites:', e);
         }
     }
+}
 
-    function renderSavedSites() {
-        const savedGrid = document.getElementById('saved-grid');
-        if (!savedGrid) return;
+function renderSavedSites() {
+    const savedGrid = document.getElementById('saved-grid');
+    if (!savedGrid) return;
 
-        if (savedSites.length === 0) {
-            savedGrid.innerHTML = '<div class="quick-link" style="grid-column: 1/-1; text-align: center; background: rgba(255,255,255,0.05);">No saved sites yet. Save your favorites above!</div>';
-            return;
-        }
+    if (savedSites.length === 0) {
+        savedGrid.innerHTML = '<div class="quick-link" style="grid-column: 1/-1; text-align: center; background: rgba(255,255,255,0.05);">No saved sites yet. Save your favorites above!</div>';
+        return;
+    }
 
-        savedGrid.innerHTML = savedSites.map((site, index) => `
-            <div class="quick-link saved-link" data-url="${escapeHtml(site.url)}" data-index="${index}">
+    savedGrid.innerHTML = savedSites.map((site, index) => `
+            <div class="quick-link" data-url="${escapeHtml(site.url)}" data-index="${index}">
                 ${escapeHtml(site.title || site.url)}
             </div>
         `).join('');
 
-        document.querySelectorAll('.saved-link').forEach(link => {
-            link.addEventListener('click', (e) => {
-                const url = link.getAttribute('data-url');
-                if (url) {
-                    window.location.href = url;
-                }
-            });
+    document.querySelectorAll('.saved-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            const url = link.getAttribute('data-url');
+            if (url) {
+                window.location.href = url;
+            }
         });
-    }
+    });
+}
 
-    function escapeHtml(text) {
-        const div = document.createElement('div');
-        div.textContent = text;
-        return div.innerHTML;
-    }
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
 
-    async function fetchPageTitle(url) {
-        try {
-            const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
-            const response = await fetch(proxyUrl);
-            const data = await response.json();
-            
-            if (data && data.contents) {
-                const parser = new DOMParser();
-                const doc = parser.parseFromString(data.contents, 'text/html');
-                const title = doc.querySelector('title');
-                if (title && title.textContent) {
-                    return title.textContent.trim();
-                }
-            }
-            try {
-                const urlObj = new URL(url);
-                return urlObj.hostname.replace('www.', '');
-            } catch(e) {
-                return 'Saved Site';
-            }
-        } catch (error) {
-            console.error('Error fetching title:', error);
-            try {
-                const urlObj = new URL(url);
-                return urlObj.hostname.replace('www.', '');
-            } catch(e) {
-                return 'Saved Site';
+async function fetchPageTitle(url) {
+    try {
+        const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`;
+        const response = await fetch(proxyUrl);
+        const data = await response.json();
+
+        if (data && data.contents) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(data.contents, 'text/html');
+            const title = doc.querySelector('title');
+            if (title && title.textContent) {
+                return title.textContent.trim();
             }
         }
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace('www.', '');
+        } catch (e) {
+            return 'Saved Site';
+        }
+    } catch (error) {
+        console.error('Error fetching title:', error);
+        try {
+            const urlObj = new URL(url);
+            return urlObj.hostname.replace('www.', '');
+        } catch (e) {
+            return 'Saved Site';
+        }
+    }
+}
+
+async function saveCurrentSite() {
+    const urlInput = document.getElementById('url-input');
+    const errorDiv = document.getElementById('error-message');
+    const saveBtn = document.getElementById('save-site-btn');
+
+    let url = urlInput.value.trim();
+
+    if (!url) {
+        errorDiv.textContent = 'Please enter a URL to save';
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+        return;
     }
 
-    async function saveCurrentSite() {
-        const urlInput = document.getElementById('url-input');
-        const errorDiv = document.getElementById('error-message');
-        const saveBtn = document.getElementById('save-site-btn');
-        
-        let url = urlInput.value.trim();
-        
-        if (!url) {
-            errorDiv.textContent = 'Please enter a URL to save';
-            errorDiv.style.display = 'block';
-            setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
-            return;
-        }
-        
-        if (!url.startsWith('http://') && !url.startsWith('https://')) {
-            url = 'https://' + url;
-        }
-        
-        try {
-            new URL(url);
-        } catch(e) {
-            errorDiv.textContent = 'Please enter a valid URL';
-            errorDiv.style.display = 'block';
-            setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
-            return;
-        }
-        
-        if (savedSites.some(site => site.url === url)) {
-            errorDiv.textContent = 'This site is already saved!';
-            errorDiv.style.display = 'block';
-            setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
-            return;
-        }
-        
-        const originalBtnText = saveBtn.textContent;
-        saveBtn.textContent = 'Loading...';
-        saveBtn.disabled = true;
-        errorDiv.style.display = 'none';
-        
-        try {
-            const title = await fetchPageTitle(url);
-            
-            savedSites.push({ url, title });
-            localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
-            
-            renderSavedSites();
-            
-            errorDiv.style.color = '#66fcf1';
-            errorDiv.textContent = `✓ "${title}" saved successfully!`;
-            errorDiv.style.display = 'block';
-            setTimeout(() => { 
-                errorDiv.style.display = 'none';
-                errorDiv.style.color = '#ff6b6b';
-            }, 2000);
-            
-        } catch (error) {
-            errorDiv.textContent = 'Failed to save site. Please try again.';
-            errorDiv.style.display = 'block';
-            setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
-        } finally {
-            saveBtn.textContent = originalBtnText;
-            saveBtn.disabled = false;
-        }
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = 'https://' + url;
     }
-    
-    const style = document.createElement('style');
-    style.textContent = `
+
+    try {
+        new URL(url);
+    } catch (e) {
+        errorDiv.textContent = 'Please enter a valid URL';
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+        return;
+    }
+
+    if (savedSites.some(site => site.url === url)) {
+        errorDiv.textContent = 'This site is already saved!';
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+        return;
+    }
+
+    const originalBtnText = saveBtn.textContent;
+    saveBtn.textContent = 'Loading...';
+    saveBtn.disabled = true;
+    errorDiv.style.display = 'none';
+
+    try {
+        const title = await fetchPageTitle(url);
+
+        savedSites.push({ url, title });
+        localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
+
+        renderSavedSites();
+
+    } catch (error) {
+        errorDiv.textContent = 'Failed to save site. Please try again.';
+        errorDiv.style.display = 'block';
+        setTimeout(() => { errorDiv.style.display = 'none'; }, 3000);
+    } finally {
+        saveBtn.textContent = originalBtnText;
+        saveBtn.disabled = false;
+    }
+}
+
+const style = document.createElement('style');
+style.textContent = `
         #save-site-btn:hover {
             background: #5a6268 !important;
             box-shadow: 0 0 15px rgba(108, 117, 125, 0.5);
@@ -336,26 +322,27 @@ if (document.readyState === 'loading') {
             cursor: pointer;
         }
     `;
-    document.head.appendChild(style);
-    
-    document.addEventListener('DOMContentLoaded', () => {
-        loadSavedSites();
-        
-        const saveBtn = document.getElementById('save-site-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', saveCurrentSite);
-        }
-        
-        const urlInput = document.getElementById('url-input');
-        if (urlInput) {
-            urlInput.addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    const goBtn = document.getElementById('go-btn');
-                    if (goBtn) goBtn.click();
-                }
-            });
-        }
-    });
+
+document.head.appendChild(style);
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadSavedSites();
+
+    const saveBtn = document.getElementById('save-site-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', saveCurrentSite);
+    }
+
+    const urlInput = document.getElementById('url-input');
+    if (urlInput) {
+        urlInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                const goBtn = document.getElementById('go-btn');
+                if (goBtn) goBtn.click();
+            }
+        });
+    }
+});
 
 initScramjet();
 
