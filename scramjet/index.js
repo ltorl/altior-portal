@@ -214,7 +214,7 @@ async function fetchPageTitle(url) {
             const title = doc.querySelector('title');
             if (title && title.textContent) {
                 try {
-                    const pageTitle = title.textContent.replace(' at DuckDuckGo', '').trim();
+                    const pageTitle = title.textContent.replace(' at DuckDuckGo', ' - Search').trim();
                     return pageTitle;
                 } catch (error) {
                     return title.textContent.trim();
