@@ -165,7 +165,7 @@ input.addEventListener('keydown', (e) => {
 window.navigate = navigate;
 
 function initQuickLinks() {
-    const quickLinks = document.querySelectorAll('.quick-link');
+    const quickLinks = document.querySelectorAll('.quick-link, .saved-link');
     quickLinks.forEach(link => {
         link.addEventListener('click', (e) => {
             const url = link.getAttribute('data-url');
