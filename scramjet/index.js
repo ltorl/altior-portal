@@ -163,3 +163,5 @@ input.addEventListener('keydown', (e) => {
 });
 
 initScramjet();
+
+window.navigate = navigate;
