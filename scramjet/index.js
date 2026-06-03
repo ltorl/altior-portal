@@ -198,9 +198,9 @@ function renderSavedSites() {
     } else {
         savedSection.hidden = false;
         savedGrid.innerHTML = savedSites.map((site, index) => `
-            <div class="quick-link saved-site-item" data-url="${escapeHtml(site.url)}" data-index="${index}" style="position: relative; padding-right: 30px;">
+            <div class="quick-link saved-site-item" data-url="${escapeHtml(site.url)}" data-index="${index}">
                 ${escapeHtml(site.title || site.url)}
-                <span class="delete-saved" data-index="${index}" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold; font-size: 18px; color: #ff6b6b;">✖</span>
+                <span class="delete-saved" data-index="${index}">✖</span>
             </div>
         `).join('');
     }
