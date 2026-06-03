@@ -198,7 +198,7 @@ function renderSavedSites() {
     } else {
         savedSection.hidden = false;
         savedGrid.innerHTML = savedSites.map((site, index) => `
-            <div class="quick-link saved-site-item" data-url="${escapeHtml(site.url)}" data-index="${index}">
+            <div class="saved-link saved-site-item" data-url="${escapeHtml(site.url)}" data-index="${index}">
                 ${escapeHtml(site.title || site.url)}
                 <span class="delete-saved" data-index="${index}">✖</span>
             </div>
