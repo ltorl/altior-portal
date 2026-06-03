@@ -164,16 +164,6 @@ input.addEventListener('keydown', (e) => {
 
 window.navigate = navigate;
 
-function initQuickLinks() {
-    const quickLinks = document.querySelectorAll('.quick-link, .saved-link');
-    quickLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            const url = link.getAttribute('data-url');
-            if (url) navigate(url);
-        });
-    });
-}
-
 let savedSites = [];
 
 function loadSavedSites() {
@@ -203,25 +193,6 @@ function renderSavedSites() {
                 <span class="delete-saved" data-index="${index}">✖</span>
             </div>
         `).join('');
-    }
-    initQuickLinks();
-    attachDeleteEvents();
-}
-
-function attachDeleteEvents() {
-    document.querySelectorAll('.delete-saved').forEach(btn => {
-        btn.removeEventListener('click', handleDelete);
-        btn.addEventListener('click', handleDelete);
-    });
-}
-
-function handleDelete(e) {
-    e.stopPropagation();
-    const index = parseInt(e.currentTarget.getAttribute('data-index'));
-    if (!isNaN(index)) {
-        savedSites.splice(index, 1);
-        localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
-        renderSavedSites();
     }
 }
 
@@ -255,7 +226,6 @@ async function fetchPageTitle(url) {
         console.error('Error fetching title:', error);
         try {
             const urlObj = new URL(url);
-            urlObj = urlObj.hostname.replace('https://', '');
             return urlObj.hostname.replace('www.', '');
         } catch (e) {
             return 'Saved Site';
@@ -304,12 +274,9 @@ async function saveCurrentSite() {
 
     try {
         const title = await fetchPageTitle(url);
-
         savedSites.push({ url, title });
         localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
-
         renderSavedSites();
-
     } catch (error) {
         errorDiv.textContent = 'Failed to save site. Please try again.';
         errorDiv.style.display = 'block';
@@ -320,27 +287,51 @@ async function saveCurrentSite() {
     }
 }
 
+function setupDelegatedEvents() {
+    const container = document.getElementById('search-container');
+    if (!container) return;
+
+    container.addEventListener('click', (e) => {
+        const deleteBtn = e.target.closest('.delete-saved');
+        if (deleteBtn) {
+            e.stopPropagation();
+            const index = deleteBtn.getAttribute('data-index');
+            if (index !== null) {
+                savedSites.splice(parseInt(index), 1);
+                localStorage.setItem('altior_saved_sites', JSON.stringify(savedSites));
+                renderSavedSites();
+            }
+            return;
+        }
+
+        const link = e.target.closest('.quick-link, .saved-link');
+        if (link) {
+            const url = link.getAttribute('data-url');
+            if (url) navigate(url);
+        }
+    });
+}
+
 const style = document.createElement('style');
 style.textContent = `
-        #save-site-btn:hover {
-            background: #5a6268 !important;
-            box-shadow: 0 0 15px rgba(108, 117, 125, 0.5);
-            transform: scale(1.02);
-        }
-        #save-site-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-        .saved-link {
-            cursor: pointer;
-        }
-    `;
-
+    #save-site-btn:hover {
+        background: #5a6268 !important;
+        box-shadow: 0 0 15px rgba(108, 117, 125, 0.5);
+        transform: scale(1.02);
+    }
+    #save-site-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .saved-link {
+        cursor: pointer;
+    }
+`;
 document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedSites();
-    initQuickLinks();
+    setupDelegatedEvents();
 
     const saveBtn = document.getElementById('save-site-btn');
     if (saveBtn) {
@@ -359,4 +350,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 initScramjet();
-
