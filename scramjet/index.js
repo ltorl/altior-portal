@@ -213,11 +213,14 @@ async function fetchPageTitle(url) {
             const doc = parser.parseFromString(data.contents, 'text/html');
             const title = doc.querySelector('title');
             if (title && title.textContent) {
+                const pageTitle = title.textContent
+                pageTitle = pageTitle.hostname.replace(' at DuckDuckGo', '');
                 return title.textContent.trim();
             }
         }
         try {
             const urlObj = new URL(url);
+            urlObj = urlObj.hostname.replace('https://', '');
             return urlObj.hostname.replace('www.', '');
         } catch (e) {
             return 'Saved Site';
