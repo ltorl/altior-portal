@@ -64,10 +64,10 @@ fastify.register(fastifyStatic, {
     decorateReply: true,
 });
 
-fastify.register(require('@fastify/static'), {
-  root: path.join(__dirname, '../notmyorgin'),
-  prefix: '/notmyorgin/',
-  decorateReply: false
+fastify.register(fastfyStatic, {
+    root: notMyOrgin,
+    prefix: '/notmyorgin/',
+    decorateReply: false
 });
 
 fastify.register(fastifyStatic, {
@@ -76,7 +76,6 @@ fastify.register(fastifyStatic, {
     decorateReply: false,
 });
 
-// Serve libcurl's internal files
 fastify.register(fastifyStatic, {
     root: libcurlPath,
     prefix: "/libcurl/",
