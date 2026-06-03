@@ -194,23 +194,14 @@ function renderSavedSites() {
 
     if (savedSites.length === 0) {
         savedGrid.innerHTML = '<div class="quick-link" style="grid-column: 1/-1; text-align: center; background: rgba(255,255,255,0.05);">No saved sites yet. Save your favorites above!</div>';
-        return;
-    }
-
-    savedGrid.innerHTML = savedSites.map((site, index) => `
+    } else {
+        savedGrid.innerHTML = savedSites.map((site, index) => `
             <div class="quick-link" data-url="${escapeHtml(site.url)}" data-index="${index}">
                 ${escapeHtml(site.title || site.url)}
             </div>
         `).join('');
-
-    document.querySelectorAll('.saved-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            const url = link.getAttribute('data-url');
-            if (url) {
-                window.location.href = url;
-            }
-        });
-    });
+    }
+    initQuickLinks();
 }
 
 function escapeHtml(text) {
@@ -327,6 +318,7 @@ document.head.appendChild(style);
 
 document.addEventListener('DOMContentLoaded', () => {
     loadSavedSites();
+    initQuickLinks();
 
     const saveBtn = document.getElementById('save-site-btn');
     if (saveBtn) {
