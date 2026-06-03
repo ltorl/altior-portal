@@ -13,6 +13,7 @@ import { baremuxPath } from "@mercuryworkshop/bare-mux/node";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+//const path = require('path');
 
 let publicPath = path.resolve(process.cwd(), "scramjet");
 
@@ -61,6 +62,12 @@ fastify.addHook("onRequest", (req, reply, done) => {
 fastify.register(fastifyStatic, {
     root: publicPath,
     decorateReply: true,
+});
+
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, '../notmyorgin'),
+  prefix: '/notmyorgin/',
+  decorateReply: false
 });
 
 fastify.register(fastifyStatic, {
