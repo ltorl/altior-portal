@@ -124,6 +124,36 @@
             transform: scale(1.02);
         }
 
+        .quick-links {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 10px;
+        }
+
+        .quick-link {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(5px);
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: #fff;
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            cursor: pointer;
+        }
+
+        .quick-link:hover {
+            background: var(--accent-color);
+            color: #0b0c10;
+            transform: translateY(-2px);
+            border-color: var(--accent-glow);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
         .error-message {
             color: #ff6b6b;
             font-size: 0.9rem;
