@@ -63,12 +63,6 @@ fastify.register(fastifyStatic, {
     decorateReply: true,
 });
 
-fastify.register(fastfyStatic, {
-    root: notMyOrgin,
-    prefix: '/notmyorgin/',
-    decorateReply: false
-});
-
 fastify.register(fastifyStatic, {
     root: scramjetPath,
     prefix: "/scram/",
