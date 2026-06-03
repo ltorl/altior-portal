@@ -163,6 +163,24 @@
             padding: 8px 16px;
             border-radius: 8px;
         }
+
+        .games-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        @media (max-width: 860px) {
+            .games-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 540px) {
+            .games-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
@@ -176,42 +194,20 @@
         <h2>
             Games sites:
         </h2>
-        <div class="quick-links">
+        <div class="games-grid">
             <div class="quick-link" data-url="https://lite.3kh0.net/">3kh0 (Echo) Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://theooofficial.github.io/myRETROGAMES/">RETRO GAMES</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://bidoofery.github.io/gfiles/list.html">Bin Bash Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://bidoofery.github.io/nativegames/">Native Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://bidoofery.github.io/gam3b0y/">GAMEBOY Advance Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://gba.js.org/">GBA Online Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://outred.org/games.html">OutRed Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://theclashman2.github.io/GBA-Emulator/">GBA Emulator Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://sites.google.com/site/thegamecompilation/home?authuser=0">Unblocked Games World</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://now.gg/">Now.gg Games</div>
-        </div>
-        <div class="quick-links">
             <div class="quick-link" data-url="https://docs.google.com/forms/d/e/1FAIpQLSfuc1-5vRl31wIZtfgLqZccgm6guUXWFEq6WBYexGNYT3quuQ/viewform?usp=header">request game site</div>
         </div>
     </div>
-
-
 
     <script type="importmap">
         {
