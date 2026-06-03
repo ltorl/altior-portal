@@ -234,7 +234,8 @@ async function fetchPageTitle(url) {
         console.error('Error fetching title:', error);
         try {
             const urlObj = new URL(url);
-            return urlObj.hostname.replace('https://', '');
+            urlObj = urlObj.hostname.replace('https://', '');
+            return urlObj.hostname.replace('www.', '');
         } catch (e) {
             return 'Saved Site';
         }
