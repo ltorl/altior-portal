@@ -100,9 +100,9 @@ async function navigate(query) {
             <meta charset="UTF-8">
             <title>New Tab</title>
             <link rel="icon" type="image/png" sizes="48x48" media="(prefers-color-scheme: light)"
-                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/NewTabIcon.png">
+                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/scramjet/NewTabIcon.png">
             <link rel="icon" type="image/png" sizes="48x48" media="(prefers-color-scheme: dark)"
-                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/NewTabIconLight.png">
+                href="https://cdn.jsdelivr.net/gh/ltorl/altior-portal/scramjet/NewTabIconLight.png">
             <style>
                 * { margin: 0; padding: 0; box-sizing: border-box; }
                 body { overflow: hidden; height: 100vh; width: 100vw; }
